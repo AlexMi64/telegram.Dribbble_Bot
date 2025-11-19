@@ -2651,39 +2651,50 @@ async function showNextTask(ctx, userId, platforms = []) {
     return;
   }
 
-  for (const project of projects) {
+  // Показываем только одно задание (первый доступный проект), как в меню "Доступные задания"
+  if (projects.length > 0) {
+    const project = projects[0]; // Берем только первый проект
     const projectOwner = await getUserById(project.user_id);
     const username = projectOwner ? (projectOwner.username || 'дизайнер') : 'дизайнер';
     const ownerId = projectOwner ? projectOwner.id : 0;
 
     const availableActions = await getUndoneActionsForProject(project.id, userId);
 
-    const actionButtons = availableActions.map(action => ({
-      text: getActionText(action),
-      callback_data: `${action}_project_${project.id}`
-    }));
-
     const keyboard = [
-      actionButtons,
+      ...availableActions.map(action => ([{
+        text: getActionText(action),
+        callback_data: `${action}_project_${project.id}`
+      }])),
       [{ text: '🚨 Пожаловаться на нарушение', callback_data: `complain_${project.id}_${ownerId}` }]
     ].filter(row => row.length > 0);
-
-    if (actionButtons.length === 0) continue;
 
     const actionType = availableActions[0];
     const credits = await getCreditsForAction(project.id, actionType);
     const actionWord = actionType === 'like' ? 'лайк' : actionType === 'follow' ? 'подписку' : actionType === 'comment' ? 'комментарий' : 'просмотр';
-    const actionMessages = {
-      'view': 'Посмотреть',
-      'like': 'Поставить лайк',
-      'follow': 'Подписаться',
-      'comment': 'Оставить комментарий'
-    };
-    const actionVerb = actionMessages[actionType] || 'Посмотреть';
 
+    let actionVerb;
+    switch (actionType) {
+      case 'view':
+        actionVerb = 'Посмотреть';
+        break;
+      case 'like':
+        actionVerb = 'Поставить лайк';
+        break;
+      case 'follow':
+        actionVerb = 'Подписаться';
+        break;
+      case 'comment':
+        actionVerb = 'Оставить комментарий';
+        break;
+      default:
+        actionVerb = 'Посмотреть';
+    }
+
+    console.log(`🎯 DEBUG: Отправляем проект ${project.id} с действием ${actionType}`);
     await ctx.reply(`🎯 **${actionVerb} проекту**\n\n🔗 ${project.url}\n\n💰 +${credits} 💎 после выполнения\n\n⚠️ Обязательный настоящий ${actionWord} на сайте`, {
       reply_markup: { inline_keyboard: keyboard },
-      parse_mode: 'Markdown'
+      parse_mode: 'Markdown',
+      disable_web_page_preview: true
     });
   }
 }
