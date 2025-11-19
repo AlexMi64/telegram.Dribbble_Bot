@@ -1740,7 +1740,10 @@ bot.action(/^confirm_(?!buy)(\w+)_(\d+)$/, async (ctx) => {
     await updateCredits(user.id, user.credits + credits);
     await updateUserRating(ctx.from.id);
 
-    await ctx.reply(`✅ Спасибо за взаимную поддержку!\n\n💰 +${credits} кредит${credits !== 1 ? 'ов' : ''} начислен${credits !== 1 ? 'ы' : ''} за ${getActionText(actionType).toLowerCase()}!`);
+    const thankYouMessage = await ctx.reply(`✅ Спасибо за взаимную поддержку!\n\n💰 +${credits} кредит${credits !== 1 ? 'ов' : ''} начислен${credits !== 1 ? 'ы' : ''} за ${getActionText(actionType).toLowerCase()}!`);
+
+    // Сохраняем ID сообщения "Спасибо!", чтобы потом удалить
+    ctx.session.thankYouMessageId = thankYouMessage.message_id;
 
     setTimeout(async () => {
       const platforms = await getUserPlatforms(user.id);
@@ -2631,6 +2634,16 @@ async function getUserPlatforms(userId) {
 }
 
 async function showNextTask(ctx, userId, platforms = []) {
+  // Удаляем предыдущее сообщение "Спасибо за взаимную поддержку!" если оно есть
+  if (ctx.session.thankYouMessageId) {
+    try {
+      await ctx.telegram.deleteMessage(ctx.chat.id, ctx.session.thankYouMessageId);
+    } catch (error) {
+      // Игнорируем ошибки удаления (сообщение может уже быть удалено)
+    }
+    delete ctx.session.thankYouMessageId;
+  }
+
   const projects = await getProjectsForAction(userId, platforms);
   if (projects.length === 0) {
     if (platforms.length === 0) {
