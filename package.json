@@ -8,6 +8,7 @@
     "dev": "NODE_ENV=development node main.js",
     "debug": "NODE_ENV=development DEBUG=* node main.js",
     "clear-db": "node clear_db.js",
+    "deploy": "node deploy_to_server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "pm2:start": "pm2 start main.js --name designlike-bot",
     "pm2:stop": "pm2 stop designlike-bot",
