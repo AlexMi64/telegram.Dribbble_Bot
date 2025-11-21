@@ -1,11 +1,18 @@
 {
-  "name": "dribbble",
+  "name": "likedesign-bot",
   "version": "1.0.0",
-  "description": "",
+  "description": "🤝 DesignLike Bot - Система взаимной поддержки дизайнеров с продвинутыми возможностями локализации и админ-панелью",
   "main": "main.js",
   "scripts": {
-    "start": "node main.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "NODE_ENV=production node main.js",
+    "dev": "NODE_ENV=development node main.js",
+    "debug": "NODE_ENV=development DEBUG=* node main.js",
+    "clear-db": "node clear_db.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pm2:start": "pm2 start main.js --name designlike-bot",
+    "pm2:stop": "pm2 stop designlike-bot",
+    "pm2:restart": "pm2 restart designlike-bot",
+    "pm2:delete": "pm2 delete designlike-bot"
   },
   "keywords": [],
   "author": "",
